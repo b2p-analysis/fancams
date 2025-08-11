@@ -27,4 +27,7 @@ jobs:
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
-          python youtube_fancam_ranker.py
+          python youtube_fancam_ranker.py \
+            --api-key "$YOUTUBE_API_KEY" \
+            --date "$(date -u +'%Y-%m-%d')"
+
