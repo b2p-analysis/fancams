@@ -2,13 +2,12 @@ name: Fancam Ranker Daily
 
 on:
   schedule:
-    - cron: "0 12 * * *" # Executa todos os dias às 12:00 UTC (09:00 no Brasil)
-  workflow_dispatch: # Permite rodar manualmente
+    - cron: "0 12 * * *" # 12:00 UTC (09:00 no Brasil)
+  workflow_dispatch: {}
 
 jobs:
   run-fancam-ranker:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,5 +28,19 @@ jobs:
         run: |
           python youtube_fancam_ranker.py \
             --api-key "$YOUTUBE_API_KEY" \
-            --date "$(date -u +'%Y-%m-%d')"
+            --handle "@BOYSPLANET.OFFICIAL" \
+            --date "$(date -u +'%Y-%m-%d')" \
+            --tz "America/Sao_Paulo" \
+            --weights 1 1 1 \
+            --append-history \
+            --out "data"
+
+      - name: Commit and push CSVs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/*.csv
+          git commit -m "Auto-update CSVs $(date -u '+%Y-%m-%d %H:%M UTC')" || echo "No changes"
+          git push
+
 
