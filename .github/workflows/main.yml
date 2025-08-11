@@ -2,8 +2,12 @@ name: Fancam Ranker Daily
 
 on:
   schedule:
-    - cron: "0 12 * * *"   # roda todo dia às 12:00 UTC (≈ 09:00 no Brasil)
-  workflow_dispatch: {}     # permite rodar manualmente
+    - cron: "0 12 * * *"   # 12:00 UTC (~09:00 BRT)
+  workflow_dispatch: {}
+
+# >>> Permissões para o GITHUB_TOKEN deste job
+permissions:
+  contents: write
 
 jobs:
   run-fancam-ranker:
@@ -11,7 +15,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          # usa o token padrão do Actions com as permissões acima
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -40,11 +47,12 @@ jobs:
 
       - name: Commit and push CSVs
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/*.csv
           git commit -m "Auto-update CSVs $(date -u '+%Y-%m-%d %H:%M UTC')" || echo "No changes"
           git push
+
 
 
 
