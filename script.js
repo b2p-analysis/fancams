@@ -10,13 +10,14 @@ const imageMap = {
   "LEE LEO": "leeleo.png",
   "CHUEI LI YU": "chueliyu.png",
   "KANG WOO JIN": "kangwoojin.png",
-
   "LEE SANG WON": "leesangwon.png",
   "YUMEKI": "yumeki.png",
   "ZHOU AN XIN": "zhouanxin.png",
   "KIM GEON WOO": "kimgeonwoo.png",
   "KIM JUN SEO": "kimjunseo.png",
-  "CHUNG SANG HYEON": "changsunghyeon.png" // se seu arquivo for changsunghyeon.png, ajuste aqui
+  "CHUNG SANG HYEON": "changsunghyeon.png",
+  "HE XIN LONG": "hexinlong.png"
+   // se seu arquivo for changsunghyeon.png, ajuste aqui
   // Ex.: "CHUNG SANG HYEON": "changsunghyeon.png",
 };
 
