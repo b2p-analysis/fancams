@@ -1,21 +1,37 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TOP 8 Fancams</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TOP 8 Fancams — Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>TOP 8 Fancams</h1>
-  <div class="buttons">
-    <button onclick="loadRanking('views')">TOP 8 - Views</button>
-    <button onclick="loadRanking('likes')">TOP 8 - Likes</button>
-    <button onclick="loadRanking('comments')">TOP 8 - Comentários</button>
-    <button onclick="loadRanking('overall')">TOP 8 - Geral</button>
-  </div>
-  <div id="ranking"></div>
+
+  <!-- Tabs -->
+  <nav class="shell tabs">
+    <button class="tab active" data-type="views">TOP 8 — Views</button>
+    <button class="tab" data-type="likes">TOP 8 — Likes</button>
+    <button class="tab" data-type="comments">TOP 8 — Comments</button>
+    <button class="tab" data-type="overall">TOP 8 — Overall</button>
+  </nav>
+
+  <!-- Ranking -->
+  <main class="shell">
+    <div id="ranking" class="cols">
+      <!-- left column (#1–#4) and right column (#5–#8) are injected here -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="shell footer">
+    <div class="footer-line">
+      <span id="lastUpdate" class="muted"></span>
+      <span class="credit muted">Built by <strong>micaelzw</strong></span>
+    </div>
+  </footer>
 
   <script src="script.js"></script>
 </body>
 </html>
+
