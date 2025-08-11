@@ -14,6 +14,7 @@
     <button class="tab" data-type="likes">TOP 8 — Likes</button>
     <button class="tab" data-type="comments">TOP 8 — Comments</button>
     <button class="tab" data-type="overall">TOP 8 — Overall</button>
+    <button class="tab" id="btnAll">ALL TRAINEES</button>
   </nav>
 
   <!-- Ranking -->
@@ -32,6 +33,41 @@
   </footer>
 
   <script src="script.js"></script>
+  <!-- Modal: All Trainees -->
+<div id="allModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>All trainees</h3>
+      <button id="closeAll" class="close" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="controls">
+      <label>Sort by:
+        <select id="allMetric">
+          <option value="overall">Overall</option>
+          <option value="views">Views</option>
+          <option value="likes">Likes</option>
+          <option value="comments">Comments</option>
+        </select>
+      </label>
+
+      <input id="allSearch" type="search" placeholder="Search name…" />
+    </div>
+
+    <div class="table-wrap">
+      <table id="allTable">
+        <thead>
+          <tr>
+            <th style="width:90px;">Rank</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody><!-- rows via JS --></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 

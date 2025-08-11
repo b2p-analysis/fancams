@@ -3,9 +3,7 @@
 // pasta das imagens
 const IMG_DIR = "images/";
 
-// Mapeie aqui se quiser garantir nomes específicos.
-// Use APENAS a parte em inglês do nome (fica mais estável).
-// O restante é resolvido automaticamente por fallback.
+// mapeie nomes -> arquivos (use a parte em inglês do nome)
 const imageMap = {
   "LEE LEO": "leeleo.png",
   "CHUEI LI YU": "chueliyu.png",
@@ -16,9 +14,7 @@ const imageMap = {
   "KIM GEON WOO": "kimgeonwoo.png",
   "KIM JUN SEO": "kimjunseo.png",
   "CHUNG SANG HYEON": "changsunghyeon.png",
-  "HE XIN LONG": "hexinlong.png"
-   // se seu arquivo for changsunghyeon.png, ajuste aqui
-  // Ex.: "CHUNG SANG HYEON": "changsunghyeon.png",
+  "HE XIN LONG": "hexinlong.png",
 };
 
 // ============ Helpers ============
@@ -30,7 +26,7 @@ function formatNumber(n){
   return num.toLocaleString("en-US");
 }
 
-// Faz um "slug" seguro
+// slug “solto”
 function slugify(str){
   return String(str)
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
@@ -39,7 +35,7 @@ function slugify(str){
     .toLowerCase();
 }
 
-// Remove tudo que não é [a-z0-9]
+// slug bem compacto
 function tightSlug(str){
   return String(str)
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
@@ -47,35 +43,27 @@ function tightSlug(str){
     .replace(/[^a-z0-9]+/g,"");
 }
 
-// Extrai a parte em inglês de "이름 NAME SURNAME"
+// parte em inglês do nome completo
 function getEnglishName(fullName){
   const m = fullName.match(/[A-Za-z].*$/);
   return (m ? m[0] : "").trim();
 }
 
-// Estratégia robusta para encontrar a imagem
+// resolve a URL da imagem (map + fallbacks)
 function getImageUrl(fullName){
-  const english = getEnglishName(fullName);        // ex.: "LEE LEO"
-  const englishLower = english.toLowerCase();      // "lee leo"
-  const englishTight = tightSlug(english);         // "leeleo"
-  const englishHyphen = slugify(english);          // "lee-leo"
+  const english = getEnglishName(fullName);
+  const englishLower = english.toLowerCase();
+  const englishTight = tightSlug(english);
+  const englishHyphen = slugify(english);
+  const fullTight = tightSlug(fullName);
 
-  const fullTight = tightSlug(fullName);           // tudo junto do nome inteiro
-
-  // 1) Mapeamento direto por inglês
   if (english && imageMap[english]) return IMG_DIR + imageMap[english];
 
-  // 2) Fallbacks automáticos em ordem:
-  //    a) inglês sem espaços/hífens -> leeleo.png
-  //    b) inglês com hífens -> lee-leo.png
-  //    c) tight do nome completo -> (último recurso)
   const candidates = [
     `${IMG_DIR}${englishTight}.png`,
     `${IMG_DIR}${englishHyphen}.png`,
     `${IMG_DIR}${fullTight}.png`,
   ];
-
-  // retornamos o primeiro candidato; se não existir, onerror cai em placeholder
   return candidates[0];
 }
 
@@ -131,7 +119,7 @@ function renderTwoColumns(type, headers, rows){
   const leftRows  = rows.slice(0, 4);
   const rightRows = rows.slice(4, 8);
 
-  const iName = idx(headers,"trainee_name",0);
+  const iName  = idx(headers,"trainee_name",0);
   const iViews = headers.indexOf("views");
   const iLikes = headers.indexOf("likes");
   const iComms = headers.indexOf("comments");
@@ -152,7 +140,6 @@ function renderTwoColumns(type, headers, rows){
 
   const leftCol = document.createElement("div");
   leftCol.className = "col";
-
   const rightCol = document.createElement("div");
   rightCol.className = "col";
 
@@ -179,8 +166,15 @@ function renderTwoColumns(type, headers, rows){
 
 // ============ Controller ============
 
+let activeTab = "views"; // guarda a aba ativa
+
 async function loadRanking(type){
-  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.type===type));
+  activeTab = type;
+
+  // destaque somente nas abas que têm data-type
+  document.querySelectorAll('.tab[data-type]').forEach(b=>{
+    b.classList.toggle("active", b.dataset.type===type);
+  });
 
   const csvFile = `data/top8_${type}.csv`;
   const res = await fetch(csvFile, { cache:"no-store" });
@@ -197,12 +191,153 @@ async function loadRanking(type){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".tab").forEach(btn=>{
+  // listeners só em tabs com data-type (evita pegar o botão ALL TRAINEES)
+  document.querySelectorAll('.tab[data-type]').forEach(btn=>{
     btn.addEventListener("click", ()=> loadRanking(btn.dataset.type));
   });
-  loadRanking("views"); // default
+
+  // carrega a aba padrão
+  loadRanking(activeTab);
 });
 
+/* ================= All Trainees (rank + name) ================= */
+
+let ALL_DATA_CACHE = null;
+
+function logWarn(msg) {
+  console.warn("[all-trainees]", msg);
+}
+
+async function fetchAllTrainees() {
+  if (ALL_DATA_CACHE) return ALL_DATA_CACHE;
+
+  const res = await fetch("data/all_trainees.csv", { cache: "no-store" });
+  if (!res.ok) throw new Error("Could not load data/all_trainees.csv");
+  let text = await res.text();
+
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+  let headers, rows;
+  try {
+    const parsed = parseCSV(text);
+    headers = parsed.headers;
+    rows   = parsed.rows;
+  } catch (e) {
+    console.error("CSV parse error:", e);
+    throw e;
+  }
+
+  const idxName    = headers.indexOf("trainee_name");
+  const idxViews   = headers.indexOf("views");
+  const idxLikes   = headers.indexOf("likes");
+  const idxComms   = headers.indexOf("comments");
+  const idxOverall = headers.indexOf("overall_rank");
+  const idxVRank   = headers.indexOf("views_rank");
+  const idxLRank   = headers.indexOf("likes_rank");
+  const idxCRank   = headers.indexOf("comments_rank");
+
+  const data = rows.map(r => ({
+    name: (r[idxName] ?? "").trim(),
+    views: Number(r[idxViews] ?? 0),
+    likes: Number(r[idxLikes] ?? 0),
+    comments: Number(r[idxComms] ?? 0),
+    overall: Number(r[idxOverall] ?? 0),
+    views_rank: Number(r[idxVRank] ?? 0),
+    likes_rank: Number(r[idxLRank] ?? 0),
+    comments_rank: Number(r[idxCRank] ?? 0),
+  }));
+
+  ALL_DATA_CACHE = data;
+  return data;
+}
+
+function computeRanks(arr, key) {
+  if (key === "overall"  && arr.every(x => x.overall))       return arr.map(x => ({ ...x, rank: x.overall }));
+  if (key === "views"    && arr.every(x => x.views_rank))    return arr.map(x => ({ ...x, rank: x.views_rank }));
+  if (key === "likes"    && arr.every(x => x.likes_rank))    return arr.map(x => ({ ...x, rank: x.likes_rank }));
+  if (key === "comments" && arr.every(x => x.comments_rank)) return arr.map(x => ({ ...x, rank: x.comments_rank }));
+
+  const sorted = [...arr].sort((a,b) => (b[key]||0) - (a[key]||0));
+  const rankMap = new Map();
+  let lastVal = null, lastRank = 0;
+  sorted.forEach((item, idx) => {
+    const val = item[key] || 0;
+    if (val !== lastVal) { lastVal = val; lastRank = idx + 1; }
+    rankMap.set(item.name, lastRank);
+  });
+  return arr.map(x => ({ ...x, rank: rankMap.get(x.name) || 0 }));
+}
+
+function renderAllSimple(metric = "overall", query = "") {
+  if (!ALL_DATA_CACHE) return;
+  const tbody = document.querySelector("#allTable tbody");
+  if (!tbody) { logWarn("tbody #allTable not found."); return; }
+
+  const q = (query || "").toLowerCase();
+
+  let list = computeRanks(ALL_DATA_CACHE, metric);
+  list = list.filter(x => x.name.toLowerCase().includes(q));
+  list.sort((a,b) => a.rank - b.rank);
+
+  const frag = document.createDocumentFragment();
+  list.forEach(row => {
+    const tr = document.createElement("tr");
+    const tdRank = document.createElement("td");
+    tdRank.textContent = row.rank || "-";
+    const tdName = document.createElement("td");
+    tdName.textContent = row.name || "";
+    tr.append(tdRank, tdName);
+    frag.appendChild(tr);
+  });
+
+  tbody.innerHTML = "";
+  tbody.appendChild(frag);
+}
+
+async function openAllModal() {
+  try {
+    await fetchAllTrainees();
+    const metricSel = document.getElementById("allMetric");
+    const searchInp = document.getElementById("allSearch");
+    renderAllSimple(metricSel ? metricSel.value : "overall", searchInp ? searchInp.value : "");
+    const modal = document.getElementById("allModal");
+    modal && modal.classList.remove("hidden");
+  } catch (e) {
+    console.error(e);
+    alert("Failed to load the full ranking.");
+  }
+}
+
+function closeAllModal() {
+  const modal = document.getElementById("allModal");
+  modal && modal.classList.add("hidden");
+  // não recarrega nada — mantém a aba ativa
+}
+
+// listeners da modal + botão All
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAll     = document.getElementById("btnAll");
+  const btnClose   = document.getElementById("closeAll");
+  const selMetric  = document.getElementById("allMetric");
+  const inpSearch  = document.getElementById("allSearch");
+  const modal      = document.getElementById("allModal");
+
+  btnAll   && btnAll.addEventListener("click", openAllModal);
+  btnClose && btnClose.addEventListener("click", closeAllModal);
+
+  // fecha clicando fora do conteúdo
+  modal && modal.addEventListener("click", (ev) => {
+    if (ev.target === modal) closeAllModal();
+  });
+
+  selMetric && selMetric.addEventListener("change", (e) => {
+    renderAllSimple(e.target.value, inpSearch ? inpSearch.value : "");
+  });
+
+  inpSearch && inpSearch.addEventListener("input", (e) => {
+    renderAllSimple(selMetric ? selMetric.value : "overall", e.target.value);
+  });
+});
 
 
 

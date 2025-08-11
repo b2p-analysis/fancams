@@ -98,3 +98,48 @@ body{
   border-top:1px solid var(--border);padding-top:10px;margin-top:6px;
 }
 .credit strong{color:#0f172a}
+/* ===== Modal (All Trainees) ===== */
+.modal.hidden { display: none; }
+.modal {
+  position: fixed; inset: 0; padding: 24px;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.modal-content {
+  background: #fff; color: #111;
+  width: min(900px, 95vw);
+  border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,.25);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid #eee;
+}
+.modal-header h3 { margin: 0; font-weight: 700; }
+.modal-header .close {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 26px; line-height: 1;
+}
+
+.controls {
+  display: flex; gap: 12px; align-items: center;
+  padding: 10px 18px; border-bottom: 1px solid #f2f2f2;
+}
+.controls input[type="search"] {
+  flex: 1; padding: 8px 10px; border: 1px solid #e4e4e4; border-radius: 10px;
+}
+
+.table-wrap { max-height: 70vh; overflow: auto; }
+#allTable {
+  width: 100%; border-collapse: collapse; font-size: 14px;
+}
+#allTable thead th {
+  position: sticky; top: 0; background: #fafafa; border-bottom: 1px solid #eee;
+  text-align: left; padding: 10px 12px; font-weight: 700;
+}
+#allTable td {
+  padding: 10px 12px; border-bottom: 1px solid #f6f6f6;
+}
+#allTable tr:hover { background: #fafafa; }
+
